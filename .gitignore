@@ -1,0 +1,15 @@
+
+**/__pycache__/
+
+.vscode/
+
+build/
+*.egg-info/
+
+logs/
+wandb/
+checkpoints/
+
+# cache
+.pytest_cache/
+.ruff_cache/
