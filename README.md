@@ -181,11 +181,11 @@ For further questions, feel free to raise an issue.
 If you find this repository useful, please consider citing our unpublished manuscript:
 
 ```
-@misc{gk2025enflow,
-      title={Energy-Guided Flow Matching Enables Few-Step Conformer Generation and Ground-State Identification},
-      author={Guikun Xu, Xiaohan Yi, Peilin Zhao, Yatao Bian},
-  		year={2025},
-  		note={Unpublished manuscript}
+@article{xu2025energy,
+  title={Energy-Guided Flow Matching Enables Few-Step Conformer Generation and Ground-State Identification},
+  author={Xu, Guikun and Yi, Xiaohan and Zhao, Peilin and Bian, Yatao},
+  journal={arXiv preprint arXiv:2512.22597},
+  year={2025}
 }
 ```
 
