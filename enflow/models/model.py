@@ -658,6 +658,7 @@ class BaseFlow(BaseModel):
         guide_scale: float = 1.0,
         energy_guided: bool = False,
         return_energy: bool = False,
+        sample_debug: bool = False,
     ):
         """
         By default performs ODE (sampler_type="ode") sampling
@@ -709,6 +710,23 @@ class BaseFlow(BaseModel):
                     f_t = 0.1 * (1 - t) ** 2
                     f_t *= guide_scale
                     v_t_prime = v_t - f_t * dEdx
+                    if sample_debug:
+                        v_norm = torch.linalg.vector_norm(v_t).item()
+                        dEdx_norm = torch.linalg.vector_norm(dEdx).item()
+                        ft_dedx = f_t * dEdx
+                        ft_dedx_norm = torch.linalg.vector_norm(ft_dedx).item()
+                        ratio = ft_dedx_norm / (v_norm + 1e-12)
+                        t_scalar = t_schedule[i].item()
+                        print(
+                            "[sample-debug][ode] "
+                            f"step={i}/{n - 1} "
+                            f"t={t_scalar:.6f} "
+                            f"||v_t||={v_norm:.6e} "
+                            f"||dEdx||={dEdx_norm:.6e} "
+                            f"||f_t*dEdx||={ft_dedx_norm:.6e} "
+                            f"ratio={ratio:.6e}",
+                            flush=True,
+                        )
 
                     x = x + delta_t * v_t_prime
 
