@@ -1,6 +1,6 @@
 <div align="center">
 
-# EnFlow: Energy-Guided Flow Matching Enables Few-Step Conformer Generation and Ground-State Identification
+# EnFlow: Energy-Guided Generative Modeling for Low-Energy Molecular Structure Discovery
 
 <a href="https://pytorch.org/get-started/locally/"><img alt="PyTorch" src="https://img.shields.io/badge/PyTorch-ee4c2c?logo=pytorch&logoColor=white"></a>
 <a href="https://pytorchlightning.ai/"><img alt="Lightning" src="https://img.shields.io/badge/-Lightning-792ee5?logo=pytorchlightning&logoColor=white"></a>
@@ -8,12 +8,12 @@
 </div>
 
 
-The official implementation of the manuscript **"Energy-Guided Flow Matching Enables Few-Step Conformer Generation and Ground-State Identification"** 
+The official implementation of the manuscript **"Energy-Guided Generative Modeling for Low-Energy Molecular Structure Discovery"** 
 
 <h4 align="center">Abstract</h4>
 
 <div align="justify">
-Generating low-energy conformer ensembles and identifying ground-state conformations from molecular graphs remain computationally expensive with physics-based pipelines, while existing deep learning approaches are often fragmented: generative models produce diverse conformations without reliable energy calibration, whereas deterministic predictors focus on a single structure and fail to capture ensemble variability. We propose EnFlow, a unified framework that integrates flow matching (FM) with an explicit learned energy model via an energy-guided scheme defined along a non-Gaussian FM path. During sampling, energy-gradient guidance directs trajectories toward low-energy regions, substantially improving generation fidelity in the few-step regime. The learned energy function also supports efficient energy-based ranking and gradient-based refinement for ground-state identification. Experiments on GEOM-QM9 and GEOM-Drugs demonstrate that EnFlow consistently improves precision-oriented metrics for the generation of 1--2 ODE-steps and reduces ground-state prediction errors compared to strong baselines.
+Exploring molecular energy landscapes and identifying ground-state conformations are central challenges in computational chemistry. However, generating diverse low-energy conformers from molecular graphs remains expensive with traditional physics-based pipelines. Existing learning-based approaches remain fragmented: generative models capture conformational diversity but often lack reliable energy calibration, whereas deterministic predictors focus on a single structure and fail to represent ensemble variability. Here we introduce EnFlow, to our knowledge, the first energy-guided generative framework that couples flow-based conformer generation with explicit energy landscape modeling for joint conformational ensemble generation and ground-state identification. By integrating generative dynamics with a learned energy model, EnFlow guides sampling toward low energy regions of the conformational landscape, improving structural fidelity under extremely few sampling steps while enabling energy-based ranking of generated conformations. Experiments on GEOM-QM9 and GEOM-Drugs show that EnFlow achieves strong performance in conformer generation and ground-state identification while requiring only 1--2 ODE sampling steps. Single-point GFN2-xTB evaluations further show that the learned energy scores preserve physically meaningful energetic rankings of generated conformations. These results support explicit energy landscape modeling as an effective strategy for low-energy molecular structure discovery through joint modeling of conformational ensembles and their associated energies.
 </div>
 
 
