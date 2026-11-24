@@ -8,7 +8,9 @@
 </div>
 
 
-The official implementation of the manuscript **"Energy-Guided Generative Modeling for Low-Energy Molecular Structure Discovery"** 
+The official implementation of **"Energy-Guided Generative Modeling for Low-Energy Molecular Structure Discovery"** by Guikun Xu, Xiaohan Yi, Ziqiao Meng, Peilin Zhao, and Yatao Bian.
+
+**[Paper (arXiv)](https://arxiv.org/abs/2512.22597)** · **[Processed data (Zenodo)](https://zenodo.org/records/18044125)** · **[Model checkpoints (Zenodo)](https://zenodo.org/records/18045494)**
 
 <h4 align="center">Abstract</h4>
 
@@ -39,14 +41,40 @@ pip install -e .
 
 ------
 
-### Preprocessing Data
+### Data and Model Checkpoints
+
+The processed GEOM data and pretrained model checkpoints used in this study are publicly available on Zenodo:
+
+| Resource | Archive | DOI |
+| --- | --- | --- |
+| [Processed data](https://zenodo.org/records/18044125) | `processed.tar.gz` (approximately 3.71 GB) | [10.5281/zenodo.18044125](https://doi.org/10.5281/zenodo.18044125) |
+| [Model checkpoints](https://zenodo.org/records/18045494) | `checkpoints.tar.gz` (approximately 1.21 GB) | [10.5281/zenodo.18045494](https://doi.org/10.5281/zenodo.18045494) |
+
+Download the archives from the record pages above or use the following commands from the repository root:
+
+```bash
+curl -L --fail --output processed.tar.gz \
+  'https://zenodo.org/records/18044125/files/processed.tar.gz?download=1'
+curl -L --fail --output checkpoints.tar.gz \
+  'https://zenodo.org/records/18045494/files/checkpoints.tar.gz?download=1'
+```
+
+Set `DATA_DIR` to the parent directory of the extracted `processed/` folder. The dataset loader expects `.pt` files under `$DATA_DIR/processed/<partition>/<split>/`, where `<partition>` is `qm9` or `drugs` and `<split>` is `train`, `val`, or `test`.
+
+```bash
+export DATA_DIR="/absolute/path/to/Geom"
+```
+
+Inspect the archive contents with `tar -tzf processed.tar.gz` and `tar -tzf checkpoints.tar.gz` before extracting them, then place the processed data and checkpoints in the intended directories. When using the released processed data, skip the preprocessing steps below. For checkpoint loading, see [Loading a Pre-Trained Checkpoint](#loading-a-pre-trained-checkpoint).
+
+### Preprocessing Data from the Original GEOM Files
 
 To pre-process the data, perform the following steps,
 
 1. Set up the environment variable `$DATA_DIR`,
 
       ```bash
-      DATA_DIR=</path_to_data, e.g.,'~/Data/Geom'>
+      export DATA_DIR="/absolute/path/to/Geom"
       ```
 
 2. Download the **GEOM** datasets ( drugs.tar.gz and qm9.tar.gz ) prepared by [Torsional Diffusion](https://drive.google.com/drive/folders/1BBRpaAvvS2hTrH81mAE4WvyLIKMyhwN7) to `$DATA_DIR` and extract them. After extraction, `$DATA_DIR` should have the following directory structure,
@@ -78,7 +106,7 @@ To pre-process the data, perform the following steps,
       ```bash
       python scripts/gen_reflow_pairs.py \
       --config configs/EM2-qm9-so3.yaml \
-      --checkpoint <checkpoint-path> \
+      --checkpoint "<checkpoint-path>" \
       --num_reflow_pairs 64 \
       --num_ode_steps 50
       ```
@@ -115,22 +143,22 @@ For the **Molecular Conformation Generation** task, evaluation happens in 2 step
 1. **Generating Conformations**. To run the evaluation on either GEOM or QM9 given a config and a checkpoint, run the following command,
       ```bash
       python scripts/eval_multi_gpu.py \
-      --config=<config-path> \
-      --checkpoint=<checkpoint-path> \
-      --energy_guided
-      -guide_scale 4
-      --return_energy 
+      --config="<config-path>" \
+      --checkpoint="<checkpoint-path>" \
+      --energy_guided \
+      --guide_scale 4 \
+      --return_energy
       ```
 
       - `--energy_guided`: enable the energy-guided sampling scheme.
       - `--guide_scale`: guidance strength for energy guidance (e.g., 4 corresponds to $\lambda_t = 0.4 \cdot (1 - t)^2)$.
       - `--return_energy`: return the predicted energy from the energy model.
-      - The number of ODE sampling steps is specified in the configuration file at <config-path>.
+      - The number of ODE sampling steps is specified in the configuration file at `<config-path>`.
 
 2. **Evaluating Conformations** with Cov and AMR Metrics. The above sample generation script should created a `generated_files.pkl` at the following path, `logs/samples/<config-path>/<data-time>/generated_files.pkl`. With the given path, we can get the various  metrics using,
 
       ```bash
-      python scripts/eval_cov_mat.py --path=<path-to-generated-files.pkl> --num_workers=10
+      python scripts/eval_cov_mat.py --path="<path-to-generated-files.pkl>" --num_workers=10
       ```
 
 For the **Molecular Ground-state Conformation prediction** task, evaluation happens in 2 steps as follows,
@@ -139,26 +167,40 @@ For the **Molecular Ground-state Conformation prediction** task, evaluation happ
 
       ```bash
       python scripts/eval_multi_gpu_lowest_energy.py \
-      --config=<config-path> \
-      --checkpoint=<checkpoint-path> \
-      --guide_scale \
-      --return_energy \ 
-      --num_samples 5 \
+      --config="<config-path>" \
+      --checkpoint="<checkpoint-path>" \
+      --energy_guided \
+      --guide_scale 4 \
+      --return_energy \
+      --num_samples 5
       ```
 
-      - `--num_sample`: for each molecule, generate n samples for energy ranking. If $n \geq 2$, the $\texttt{EnsembleCert}$ (Alg. 3) mode is used for ground-state certification; if $n = 1$, the $\texttt{JustFM}$ (Alg. 3) mode is used to refine a generated conformation.
+      - `--num_samples`: for each molecule, generate n samples for energy ranking. If $n \geq 2$, the $\texttt{EnsembleCert}$ (Alg. 3) mode is used for ground-state certification; if $n = 1$, the $\texttt{JustFM}$ (Alg. 3) mode is used to refine a generated conformation.
 
 2. **Evaluating Conformations** with Distance and Coordinates Error Metrics. The above sample generation script should created a `generated_files.pkl` at the following path, `logs/samples/<config-path>/<data-time>/generated_files.pkl`. With the given path, we can get the various  metrics using,
 
       ```bash
-      python scripts/eval_groundstate.py --path=<path-to-generated-files.pkl>
+      python scripts/eval_groundstate.py --path="<path-to-generated-files.pkl>"
       ```
 
 ------
 
 ### Loading a Pre-Trained Checkpoint
 
-Coming Soon!
+Download `checkpoints.tar.gz` from the [Zenodo model checkpoint record](https://zenodo.org/records/18045494) and extract it. Choose a `.ckpt` file and the matching configuration in `configs/` for the dataset (`qm9` or `drugs`), model architecture, and training stage (EM1, EM2, or Reflow).
+
+The evaluation scripts load the checkpoint's `state_dict` into the model defined by the selected configuration. For example, after preparing the processed data and setting `DATA_DIR`, run:
+
+```bash
+python scripts/eval_multi_gpu.py \
+  --config configs/EM2-qm9-so3.yaml \
+  --checkpoint /absolute/path/to/matching-qm9-em2-checkpoint.ckpt \
+  --energy_guided \
+  --guide_scale 4 \
+  --return_energy
+```
+
+Replace the checkpoint path with the actual extracted file. For ground-state identification, use `scripts/eval_multi_gpu_lowest_energy.py` with the same configuration and checkpoint arguments and add `--num_samples 5`. To initialize energy fine-tuning or Reflow training, set `pretrained_ckpt` in the training configuration to the checkpoint from the preceding stage.
 
 ------
 
@@ -178,14 +220,42 @@ For further questions, feel free to raise an issue.
 
 ### Citation
 
-If you find this repository useful, please consider citing our unpublished manuscript:
+If you find this repository useful, please consider citing our [manuscript](https://arxiv.org/abs/2512.22597):
 
 ```
 @article{xu2025energy,
-  title={Energy-Guided Flow Matching Enables Few-Step Conformer Generation and Ground-State Identification},
-  author={Xu, Guikun and Yi, Xiaohan and Zhao, Peilin and Bian, Yatao},
+  title={Energy-Guided Generative Modeling for Low-Energy Molecular Structure Discovery},
+  author={Xu, Guikun and Yi, Xiaohan and Meng, Ziqiao and Zhao, Peilin and Bian, Yatao},
   journal={arXiv preprint arXiv:2512.22597},
-  year={2025}
+  year={2025},
+  doi={10.48550/arXiv.2512.22597},
+  url={https://arxiv.org/abs/2512.22597}
+}
+```
+
+If you use the released processed data or model checkpoints, please also cite the corresponding Zenodo archive:
+
+```bibtex
+@dataset{xu2026enflowprocessed,
+  author={Xu, Guikun},
+  title={Energy-Guided Generative Modeling for Low-Energy Molecular Structure Discovery},
+  year={2026},
+  publisher={Zenodo},
+  version={v1},
+  doi={10.5281/zenodo.18044125},
+  url={https://zenodo.org/records/18044125},
+  note={Processed GEOM data for EnFlow}
+}
+
+@software{xu2026enflowcheckpoints,
+  author={Xu, Guikun},
+  title={Energy-Guided Generative Modeling for Low-Energy Molecular Structure Discovery},
+  year={2026},
+  publisher={Zenodo},
+  version={v1},
+  doi={10.5281/zenodo.18045494},
+  url={https://zenodo.org/records/18045494},
+  note={Pretrained model checkpoints for EnFlow}
 }
 ```
 
